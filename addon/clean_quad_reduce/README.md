@@ -2,7 +2,9 @@
 
 Standalone Blender 5.1+ extension. Install this ZIP from Blender Preferences → Get Extensions → menu → Install from Disk. No Codex, skill, MCP connection, network service or external Python package is needed for reduction.
 
-Select mesh objects in Object Mode. Open View3D → N sidebar → Clean Quad. Analyze → choose quality/protection settings → Create Preview → inspect → Apply Preview or Revert Preview. ESC cancels an active preview job. Sources are unchanged until application and are then kept as hidden objects in CQR_Backups. Original object names and rig/VRM references remain on the reduced objects.
+Select mesh objects in Object Mode. Open View3D → N sidebar → Clean Quad. Analyze → choose quality (optionally toggle UV protection and wire display) → Create Preview → inspect → Apply Preview or Revert Preview. ESC cancels an active preview job. Sources are unchanged until application and are then kept as hidden objects in CQR_Backups. Original object names and rig/VRM references remain on the reduced objects.
+
+Advanced shape, protection and geometry controls are collapsed by default under Advanced / 詳細設定. Existing VRM file counting, the report threshold and the JSON report name are under Measurement / 計測・レポート.
 
 The default Aligned reference recipe merges disjoint row strips in stages, halves error budgets around intersecting surfaces, detects latitude/longitude sphere grids, and repeats with protection near sampled shape errors. Sphere poles use intentional triangle fans. This recipe never calls un-subdivision. It transfers original materials and projects authored normals. Textures, keys, colors, explicit UV protection or protection groups fall back to strict, UV-protected row reduction. Strict mode verifies new edge paths and disables odd un-subdivision passes. These methods preserve existing flow rather than retopologizing a source that was already diagonal.
 

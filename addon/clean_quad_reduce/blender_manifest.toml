@@ -1,6 +1,6 @@
 schema_version = "1.0.0"
 id = "clean_quad_reduce"
-version = "1.0.0"
+version = "1.0.1"
 name = "Clean Quad Reduce"
 tagline = "Reduce quad strips with shape and topology checks"
 maintainer = "Clean Quad Reduce contributors"

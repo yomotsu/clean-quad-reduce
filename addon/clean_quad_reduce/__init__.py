@@ -1,7 +1,7 @@
 """Blender UI for Clean Quad Reduce; independent of Codex / MCP / skills."""
 bl_info = {
     "name": "Clean Quad Reduce", "author": "Clean Quad Reduce contributors",
-    "version": (1, 0, 0), "blender": (5, 1, 0),
+    "version": (1, 0, 1), "blender": (5, 1, 0),
     "location": "View3D > Sidebar > Clean Quad", "category": "Mesh",
     "description": "Preview quad-strip reduction with sampled shape bounds",
 }
@@ -370,61 +370,64 @@ class CQR_PT_panel(bpy.types.Panel):
 
     def draw(self, context):
         layout, s = self.layout, context.scene.cqr
+        previews = bool(_previews(context))
         if context.mode != "OBJECT":
             layout.label(text="Object Mode / オブジェクトモード", icon="INFO")
         layout.operator("cqr.analyze", icon="VIEWZOOM")
-        layout.label(text="Keep row directions / 斜め格子を作らない", icon="CHECKMARK")
         col = layout.column()
-        col.enabled = not s.busy and not _previews(context)
+        col.enabled = not s.busy and not previews
         col.prop(s, "profile")
-        if s.method == "ALIGNED":
-            col.label(text="Contact-aware rows + pole fans / 接触部を保護")
-        col.prop(s, "max_error")
-        col.prop(s, "relative_error")
-        if s.method == "STRICT":
-            col.prop(s, "min_quad_fraction")
-        else:
-            col.label(text="Pole fans retain row axes / 極は三角面")
-        box = col.box()
-        box.label(text="Protection / 保護")
-        box.prop(s, "preserve_uv")
-        if not s.preserve_uv:
-            box.label(text="UV cuts may change / UV境界の変更を許可", icon="INFO")
-        box.prop(s, "preserve_materials")
-        box.prop(s, "preserve_sharp")
-        box.prop(s, "protect_group")
-        box.prop(s, "contact_distance")
-        box.prop(s, "contact_factor")
-        box = col.box()
-        box.label(text="Geometry / 四角面の品質")
-        for key in ("max_aspect", "min_angle", "max_weight_error", "grid_strategy",
-                    "allow_open_strips", "weld_uv_splits", "transfer_normals", "max_steps"):
-            if s.method == "ALIGNED" and key in {"max_weight_error", "grid_strategy"}:
-                continue
-            box.prop(s, key)
-        if s.method == "ALIGNED":
-            box = col.box()
-            box.label(text="Aligned recipe / 良好版の方式")
-            for key in ("aligned_local_error", "aligned_budget", "aligned_spheres", "sphere_large_extent",
-                        "correction_threshold", "correction_radius", "correction_factor", "mirror_correction"):
-                box.prop(s, key)
+        col.prop(s, "preserve_uv")
         col.prop(s, "wire")
         col.operator("cqr.preview", icon="MOD_DECIM")
         if s.busy:
             layout.label(text="Working; ESC to cancel / ESCで中止", icon="TIME")
-        if _previews(context):
+        if previews:
             layout.operator("cqr.accept", icon="CHECKMARK")
             layout.operator("cqr.revert", icon="LOOP_BACK")
-        layout.separator()
-        layout.prop(s, "vertex_goal")
-        layout.label(text="Limit is a report threshold / 品質限界まで削減")
-        layout.operator("cqr.export_vrm", icon="EXPORT")
-        layout.operator("cqr.count_vrm", icon="FILEBROWSER")
         box = layout.box()
         for start in range(0, len(s.status), 42):
             box.label(text=s.status[start:start+42])
-        if s.report_text:
-            box.label(text=f"Text Editor: {s.report_text}", icon="TEXT")
+        layout.operator("cqr.export_vrm", icon="EXPORT")
+
+        header, body = layout.panel("cqr_advanced", default_closed=True)
+        header.label(text="Advanced / 詳細設定")
+        if body is not None:
+            body.enabled = not s.busy and not previews
+            box = body.box()
+            box.label(text="Shape / 形状")
+            box.prop(s, "max_error")
+            box.prop(s, "relative_error")
+            if s.method == "STRICT":
+                box.prop(s, "min_quad_fraction")
+            else:
+                for key in ("aligned_local_error", "aligned_budget",
+                            "aligned_spheres", "sphere_large_extent"):
+                    box.prop(s, key)
+            box = body.box()
+            box.label(text="Protection / 保護")
+            for key in ("preserve_materials", "preserve_sharp", "protect_group"):
+                box.prop(s, key)
+            if s.method == "ALIGNED":
+                for key in ("contact_distance", "contact_factor", "correction_threshold",
+                            "correction_radius", "correction_factor", "mirror_correction"):
+                    box.prop(s, key)
+            box = body.box()
+            box.label(text="Geometry / 四角面の品質")
+            for key in ("max_aspect", "min_angle", "max_weight_error", "grid_strategy",
+                        "allow_open_strips", "weld_uv_splits", "transfer_normals", "max_steps"):
+                if s.method == "ALIGNED" and key in {"max_weight_error", "grid_strategy"}:
+                    continue
+                box.prop(s, key)
+
+        header, body = layout.panel("cqr_vrm_tools", default_closed=True)
+        header.label(text="Measurement / 計測・レポート")
+        if body is not None:
+            body.prop(s, "vertex_goal")
+            body.label(text="Report threshold / 頂点数は比較基準")
+            body.operator("cqr.count_vrm", icon="FILEBROWSER")
+            if s.report_text:
+                body.label(text=f"Text Editor: {s.report_text}", icon="TEXT")
 
 
 CLASSES = (CQR_Settings, CQR_OT_analyze, CQR_OT_preview, CQR_OT_accept,

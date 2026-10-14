@@ -7,12 +7,14 @@ Blenderアドオン版とCodexスキル版は、それぞれ必要な削減エ�
 
 ## アドオン版
 
-1. `dist/clean_quad_reduce-1.0.0.zip`を、Blenderの「プリファレンス → エクステンションを入手 → 右上メニュー → ディスクからインストール」でインストールします。
+1. `dist/clean_quad_reduce-1.0.1.zip`を、Blenderの「プリファレンス → エクステンションを入手 → 右上メニュー → ディスクからインストール」でインストールします。
 2. オブジェクトモードで対象メッシュを選択し、3Dビューの`N`パネル → **Clean Quad**を開きます。
-3. **Analyze / 分析**で構成を確認し、品質と保護設定を選びます。
+3. **Analyze / 分析**で構成を確認し、**品質**を選びます。必要に応じて**UV境界を保護**と**ワイヤー表示**を切り替えます。
 4. **Create Preview / 削減プレビュー**を実行します。処理中はビューを確認でき、`Esc`で取り消せます。
 5. 結果を確認し、**Apply Preview / 適用**または**Revert Preview / 破棄**を選びます。
 6. VRMとして出す場合は、アバターに含める全メッシュを選択し、**Export VRM + Count**で実頂点数を確認します。
+
+形状差、接触部の保護係数、四角面の品質などは、初期状態で閉じた**Advanced / 詳細設定**にまとめています。通常はプリセットのまま使い、必要な場合だけ開いて調整してください。既存VRMの計測、比較用頂点数、JSONレポート名は**Measurement / 計測・レポート**から確認できます。
 
 適用前は元メッシュを変更せず、元オブジェクトを一時的に隠します。適用時は元のオブジェクト名・リグ参照を残してメッシュを差し替え、削減前のメッシュを`CQR_Backups`に保持します。プレビュー後に元メッシュを編集した場合は、その編集を上書きせず再生成を要求します。
 
@@ -115,7 +117,7 @@ python3 build.py
 
 ```sh
 blender --background --factory-startup --python-exit-code 1 --python tests/blender_checks.py
-blender --command extension validate dist/clean_quad_reduce-1.0.0.zip
+blender --command extension validate dist/clean_quad_reduce-1.0.1.zip
 ```
 
 追加の検証方法と外部の基準モデルの条件は[`tests/README.md`](tests/README.md)を参照してください。
