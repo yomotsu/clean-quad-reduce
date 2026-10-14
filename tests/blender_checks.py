@@ -229,14 +229,25 @@ addon.register()
 select(obj)
 check("addon analysis operator works", "FINISHED" in bpy.ops.cqr.analyze())
 s = bpy.context.scene.cqr
+s.vertex_percent = 50
+check("percentage target uses selected source count", addon._vertex_target(bpy.context) == (len(old.vertices), len(old.vertices)//2))
+s.vertex_percent = 25
+check("percentage target updates immediately", addon._vertex_target(bpy.context) == (len(old.vertices), len(old.vertices)//4))
+s.vertex_percent = 50
 s.grid_strategy = "LOOPS_ONLY"; s.max_error = 0.04; s.max_aspect = 8
 check("addon preview operator works", "FINISHED" in bpy.ops.cqr.preview())
 check("addon preview leaves original mesh untouched", obj.data == old)
+check("percentage target retains baseline during preview", addon._vertex_target(bpy.context) == (len(old.vertices), len(old.vertices)//2))
 check("addon revert operator works", "FINISHED" in bpy.ops.cqr.revert() and not obj.hide_get())
 select(obj)
 check("addon second preview works", "FINISHED" in bpy.ops.cqr.preview())
 check("addon apply operator works", "FINISHED" in bpy.ops.cqr.accept())
 check("addon apply reduces the original object", len(obj.data.vertices) < len(old.vertices) and obj.name == "Cylinder")
+current = len(obj.data.vertices)
+check("percentage target uses current count after apply", addon._vertex_target(bpy.context) == (current, current//2))
+for selected in list(bpy.context.selected_objects):
+    selected.select_set(False)
+check("percentage target is empty without selection", addon._vertex_target(bpy.context) == (0, 0))
 addon.unregister()
 check("addon unregister cleans RNA properties", not hasattr(bpy.types.Scene, "cqr"))
 

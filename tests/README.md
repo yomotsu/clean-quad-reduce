@@ -5,10 +5,10 @@
 ```sh
 python3 build.py
 blender --background --factory-startup --python-exit-code 1 --python tests/blender_checks.py
-blender --command extension validate dist/clean_quad_reduce-1.0.1.zip
+blender --command extension validate dist/clean_quad_reduce-1.0.2.zip
 ```
 
-`blender_checks.py`はモデルを生成して、列の削減、斜め格子の拒否、UV・ウェイト・表情キーの保護、プレビュー、単独スキル実行、アドオン操作を43項目で検証します。外部モデルやVRMエクスポーターは不要です。出力はGit管理対象外の`test-output/`です。
+`blender_checks.py`はモデルを生成して、列の削減、斜め格子の拒否、UV・ウェイト・表情キーの保護、プレビュー、単独スキル実行、アドオン操作を48項目で検証します。外部モデルやVRMエクスポーターは不要です。出力はGit管理対象外の`test-output/`です。
 
 ## 外部の基準モデルによる任意の回帰検証
 

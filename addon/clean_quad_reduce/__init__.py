@@ -1,7 +1,7 @@
 """Blender UI for Clean Quad Reduce; independent of Codex / MCP / skills."""
 bl_info = {
     "name": "Clean Quad Reduce", "author": "Clean Quad Reduce contributors",
-    "version": (1, 0, 1), "blender": (5, 1, 0),
+    "version": (1, 0, 2), "blender": (5, 1, 0),
     "location": "View3D > Sidebar > Clean Quad", "category": "Mesh",
     "description": "Preview quad-strip reduction with sampled shape bounds",
 }
@@ -77,8 +77,9 @@ class CQR_Settings(bpy.types.PropertyGroup):
     correction_radius: FloatProperty(name="Correction radius / 補正範囲", default=0.012, min=0.000001, subtype="DISTANCE")
     correction_factor: FloatProperty(name="Correction factor / 補正係数", default=0.35, min=0.01, max=1)
     mirror_correction: BoolProperty(name="Mirror correction / 左右にも補正", default=True)
-    vertex_goal: IntProperty(name="VRM limit / VRM頂点数の基準", default=10000, min=1,
-                             description="Report threshold only; reduction continues to the quality limit")
+    vertex_percent: FloatProperty(name="Target / 頂点数の基準", default=50.0,
+                                   min=0.1, max=100.0, precision=1, subtype="PERCENTAGE",
+                                   description="Percentage of current Blender vertices to retain: 50% means half. Comparison only; reduction continues to the quality limit")
     wire: BoolProperty(name="Wire overlay / ワイヤー表示", default=True)
     busy: BoolProperty(default=False, options={"SKIP_SAVE"})
     status: StringProperty(default="Select meshes, then Analyze / メッシュを選択して分析")
@@ -97,6 +98,17 @@ def _meshes(context):
 
 def _previews(context):
     return [o for o in context.scene.objects if o.get("cqr_preview")]
+
+
+def _vertex_target(context):
+    """Use source counts throughout preview; recompute for the current selection otherwise."""
+    previews = _previews(context)
+    sources = ({source for preview in previews
+                if (source := core.source_for_preview(preview)) is not None}
+               if previews else _meshes(context))
+    before = sum(len(obj.data.vertices) for obj in sources)
+    target = max(1, int(before * context.scene.cqr.vertex_percent / 100)) if before else 0
+    return before, target
 
 
 def _write_report(context, name, value):
@@ -333,8 +345,7 @@ class CQR_OT_export(bpy.types.Operator, ExportHelper):
             _write_report(context, "CQR VRM.json", result)
             settings = context.scene.cqr
             settings.export_vertices = result["vertices"]
-            under = result["vertices"] < settings.vertex_goal
-            settings.status = f"VRM: {result['vertices']:,} vertices; {'below' if under else 'at/above'} {settings.vertex_goal:,}"
+            settings.status = f"VRM: {result['vertices']:,} vertices / {result['triangles']:,} triangles"
             self.report({"INFO"}, settings.status)
             return {"FINISHED"}
         except Exception as error:
@@ -377,6 +388,15 @@ class CQR_PT_panel(bpy.types.Panel):
         col = layout.column()
         col.enabled = not s.busy and not previews
         col.prop(s, "profile")
+        target_box = col.box()
+        target_box.prop(s, "vertex_percent")
+        before, target = _vertex_target(context)
+        if before:
+            target_box.label(text=f"Before / 削減前: {before:,}")
+            target_box.label(text=f"Target / 目標: {target:,}")
+            target_box.label(text="Blender vertices / Blender頂点数")
+        else:
+            target_box.label(text="Select meshes / メッシュを選択", icon="INFO")
         col.prop(s, "preserve_uv")
         col.prop(s, "wire")
         col.operator("cqr.preview", icon="MOD_DECIM")
@@ -423,8 +443,6 @@ class CQR_PT_panel(bpy.types.Panel):
         header, body = layout.panel("cqr_vrm_tools", default_closed=True)
         header.label(text="Measurement / 計測・レポート")
         if body is not None:
-            body.prop(s, "vertex_goal")
-            body.label(text="Report threshold / 頂点数は比較基準")
             body.operator("cqr.count_vrm", icon="FILEBROWSER")
             if s.report_text:
                 body.label(text=f"Text Editor: {s.report_text}", icon="TEXT")
