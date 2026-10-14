@@ -1,0 +1,4 @@
+interface:
+  display_name: "Blender Clean Quad Reduce"
+  short_description: "Reduce mesh vertices while keeping clean quad flow"
+  default_prompt: "Use $blender-clean-quad-reduce to reduce this Blender model with clean quad topology and verify its exported VRM vertex count."

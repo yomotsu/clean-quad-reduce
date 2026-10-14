@@ -1,0 +1,13 @@
+schema_version = "1.0.0"
+id = "clean_quad_reduce"
+version = "1.0.0"
+name = "Clean Quad Reduce"
+tagline = "Reduce quad strips with shape and topology checks"
+maintainer = "Clean Quad Reduce contributors"
+type = "add-on"
+tags = ["Mesh", "Object"]
+blender_version_min = "5.1.0"
+license = ["SPDX:GPL-3.0-or-later"]
+
+[permissions]
+files = "Export VRM files and read exported vertex counts"
